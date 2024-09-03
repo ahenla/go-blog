@@ -22,8 +22,8 @@ func initConfig() Config {
 		Port:       getENV("PORT", "8000"),
 		DBUser:     getENV("DB_USER", "root"),
 		DBPassword: getENV("DB_PASSWORD", "C0ntr4s3n4-"),
-		DBAdress:   fmt.Sprintf("%s%s", getENV("DB_HOST", "127.0.0.1"), getENV("DB_PORT", "3306")),
-		DBName:     getENV("DB_NAME", "go-blog"),
+		DBAdress:   fmt.Sprintf("%s%s", getENV("DB_HOST", "127.0.0.1"), getENV("DB_PORT", ":3306")),
+		DBName:     getENV("DB_NAME", "go_blog"),
 	}
 }
 
