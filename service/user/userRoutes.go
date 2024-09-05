@@ -29,12 +29,28 @@ func (h *Handler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 	var payload types.SignInUserPayload
 	if err := helpers.ParseJSON(r, payload); err != nil {
 		helpers.RespondError(w, http.StatusBadRequest, err)
+		return
 	}
 
 	// check if the user exists
 	_, err := h.store.GetUserByEmail(payload.Email)
 	if err != nil {
-		helpers.RespondError(w, http.StatusBadRequest, fmt.Errorf("user with emai %s alredy exists", payload.Email))
+		helpers.RespondError(w, http.StatusBadRequest, fmt.Errorf("user with email %s alredy exists", payload.Email))
+		return
 	}
+
 	// if does not exists, create a new user
+	err = h.store.CreateUser(types.User{
+		FirstName: payload.FirstName,
+		LastName:  payload.LastName,
+		Email:     payload.Email,
+		Password:  payload.Password,
+	})
+	if err != nil {
+		helpers.RespondError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	helpers.RespondJSON(w, http.StatusCreated, nil)
+
 }
