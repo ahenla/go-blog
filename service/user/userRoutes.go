@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/ahenla/go-blog/helpers"
@@ -9,10 +10,11 @@ import (
 )
 
 type Handler struct {
+	store types.UserStore
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(store types.UserStore) *Handler {
+	return &Handler{store: store}
 }
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
@@ -25,7 +27,14 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {}
 func (h *Handler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 	// get the user payload
 	var payload types.SignInUserPayload
-	helpers.ParseJSON(r, payload)
+	if err := helpers.ParseJSON(r, payload); err != nil {
+		helpers.RespondError(w, http.StatusBadRequest, err)
+	}
+
 	// check if the user exists
+	_, err := h.store.GetUserByEmail(payload.Email)
+	if err != nil {
+		helpers.RespondError(w, http.StatusBadRequest, fmt.Errorf("user with emai %s alredy exists", payload.Email))
+	}
 	// if does not exists, create a new user
 }
