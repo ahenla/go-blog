@@ -7,6 +7,7 @@ import (
 	"github.com/ahenla/go-blog/helpers"
 	"github.com/ahenla/go-blog/service/auth"
 	"github.com/ahenla/go-blog/types"
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -28,8 +29,15 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {}
 func (h *Handler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 	// get the user payload
 	var payload types.SignInUserPayload
-	if err := helpers.ParseJSON(r, payload); err != nil {
+	if err := helpers.ParseJSON(r, &payload); err != nil {
 		helpers.RespondError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	//validate the payload
+	if err := helpers.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		helpers.RespondError(w, http.StatusBadRequest, fmt.Errorf("invalid payload &v", errors))
 		return
 	}
 
