@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ahenla/go-blog/helpers"
+	"github.com/ahenla/go-blog/service/auth"
 	"github.com/ahenla/go-blog/types"
 	"github.com/gorilla/mux"
 )
@@ -39,12 +40,18 @@ func (h *Handler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hashedPassword, err := auth.HashPassword(payload.Password)
+	if err != nil {
+		helpers.RespondError(w, http.StatusInternalServerError, err)
+		return
+	}
+
 	// if does not exists, create a new user
 	err = h.store.CreateUser(types.User{
 		FirstName: payload.FirstName,
 		LastName:  payload.LastName,
 		Email:     payload.Email,
-		Password:  payload.Password,
+		Password:  hashedPassword,
 	})
 	if err != nil {
 		helpers.RespondError(w, http.StatusInternalServerError, err)
