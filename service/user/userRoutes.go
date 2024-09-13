@@ -37,14 +37,14 @@ func (h *Handler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 	//validate the payload
 	if err := helpers.Validate.Struct(payload); err != nil {
 		errors := err.(validator.ValidationErrors)
-		helpers.RespondError(w, http.StatusBadRequest, fmt.Errorf("invalid payload &v", errors))
+		helpers.RespondError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
 		return
 	}
 
 	// check if the user exists
 	_, err := h.store.GetUserByEmail(payload.Email)
 	if err != nil {
-		helpers.RespondError(w, http.StatusBadRequest, fmt.Errorf("user with email %s alredy exists", payload.Email))
+		helpers.RespondError(w, http.StatusBadRequest, fmt.Errorf("user with email %s already exists", payload.Email))
 		return
 	}
 
@@ -67,5 +67,4 @@ func (h *Handler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helpers.RespondJSON(w, http.StatusCreated, nil)
-
 }
