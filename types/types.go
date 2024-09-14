@@ -17,6 +17,11 @@ type User struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+type LogInUserPayload struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
 type SignInUserPayload struct {
 	FirstName string `json:"firstName" validate:"required"`
 	LastName  string `json:"lastName" validate:"required"`

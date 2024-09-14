@@ -24,7 +24,37 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/signin", h.handleSignIn).Methods("POST")
 }
 
-func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {}
+func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
+	// get the user payload
+	var payload types.LogInUserPayload
+	if err := helpers.ParseJSON(r, &payload); err != nil {
+		helpers.RespondError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	//validate the payload
+	if err := helpers.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		helpers.RespondError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
+		return
+	}
+
+	// check if the user exists
+	user, err := h.store.GetUserByEmail(payload.Email)
+	if err != nil {
+		helpers.RespondError(w, http.StatusBadRequest, fmt.Errorf("Not found, invalid email or password"))
+		return
+	}
+
+	// check if the password is correct
+	if !auth.ComparePasswords(user.Password, []byte(payload.Password)) {
+		helpers.RespondError(w, http.StatusBadRequest, fmt.Errorf("Not found, invalid email or password"))
+		return
+	}
+
+	// generate the token
+	helpers.RespondJSON(w, http.StatusOK, map[string]string{"token": ""})
+}
 
 func (h *Handler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 	// get the user payload
@@ -43,11 +73,12 @@ func (h *Handler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 
 	// check if the user exists
 	_, err := h.store.GetUserByEmail(payload.Email)
-	if err != nil {
+	if err == nil {
 		helpers.RespondError(w, http.StatusBadRequest, fmt.Errorf("user with email %s already exists", payload.Email))
 		return
 	}
 
+	//hash the password
 	hashedPassword, err := auth.HashPassword(payload.Password)
 	if err != nil {
 		helpers.RespondError(w, http.StatusInternalServerError, err)
